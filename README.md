@@ -1,2 +1,2 @@
 # memeLang
-A simple and funny meme lang
+Coming soon

@@ -1,0 +1,19 @@
+:) Variables
+
+cook name = IMU
+cook language = Dragon
+
+cow_sayln! name
+cow_sayln! language
+
+cow_sayln! "Hello World!"
+cow_say! "This is a test"
+
+:) Conditions
+
+cook power = 100
+
+cook age = 10
+
+sus age == 18
+cow_sayln! Adult
