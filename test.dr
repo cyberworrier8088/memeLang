@@ -15,5 +15,7 @@ cook power = 100
 
 cook age = 10
 
-sus age == 18
+sus age == 2
 cow_sayln! Adult
+nah
+cow_sayln! Child
