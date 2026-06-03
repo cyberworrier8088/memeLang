@@ -3,16 +3,35 @@
 pub enum TokenKind {
     Let,
     Print,
+
     Ident(String),
     Number(f64),
+
     Plus,
     Minus,
     Star,
     Slash,
+
     Equal,
+
+    EqualEqual,
+    BangEqual,
+
+    Greater,
+    GreaterEqual,
+
+    Less,
+    LessEqual,
+
     LParen,
     RParen,
+    LBrace,
+    RBrace,
     Semicolon,
+
+    If,
+    Else,
+
     Eof,
 }
 

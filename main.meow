@@ -1,3 +1,11 @@
-let x = 10;
-let y = 20; // hello
-print x + y;
+let a = 10;
+let b = 20;
+print a+b;
+
+let age = -5;
+
+if age >= -10 {
+    print 1;
+} else {
+    print 0;
+}

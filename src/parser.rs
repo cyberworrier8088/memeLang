@@ -31,10 +31,19 @@ impl Parser {
             return Ok(Stmt::Print(value));
         }
 
+        if self.matches(&TokenK::If) {
+            return self.if_statement();
+        }
+
+        if let Some(assign) = self.assignment()? {
+            return Ok(assign);
+        }
+
         let expr = self.expression()?;
         self.consume(&TokenK::Semicolon, "Expected ';' after expression")?;
         Ok(Stmt::Expr(expr))
     }
+
     fn let_statement(&mut self) -> Result<Stmt, String> {
         let name = match self.advance().kind.clone() {
             TokenK::Ident(name) => name,
@@ -50,8 +59,90 @@ impl Parser {
         Ok(Stmt::Let { name, value })
     }
 
+    fn if_statement(&mut self) -> Result<Stmt, String> {
+        let condition = self.expression()?;
+        self.consume(&TokenK::LBrace, "expected '{' after condition")?;
+
+        let mut body = Vec::new();
+        while !self.check(&TokenK::RBrace) {
+            body.push(self.statement()?);
+        }
+        self.consume(&TokenK::RBrace, "expected '}' after if statement")?;
+
+        let else_body = if self.matches(&TokenK::Else) {
+            self.consume(&TokenK::LBrace, "expected '{' after else")?;
+            let mut eb = Vec::new();
+            while !self.check(&TokenK::RBrace) {
+                eb.push(self.statement()?);
+            }
+            self.consume(&TokenK::RBrace, "expected '}' after else block")?;
+            Some(eb)
+        } else {
+            None
+        };
+
+        Ok(Stmt::If { condition, body, else_body })
+    }
+
     fn expression(&mut self) -> Result<Expr, String> {
-        self.term()
+        self.comparison()
+    }
+
+    fn comparison(&mut self) -> Result<Expr, String> {
+        let mut expr = self.term()?;
+        while self.matches_any(&[
+            TokenK::EqualEqual,
+            TokenK::BangEqual,
+            TokenK::Greater,
+            TokenK::GreaterEqual,
+            TokenK::Less,
+            TokenK::LessEqual,
+        ]) {
+            let op = match self.previous().kind {
+                TokenK::EqualEqual => BinaryOp::Equal,
+                TokenK::BangEqual => BinaryOp::NotEqual,
+                TokenK::Greater => BinaryOp::Greater,
+                TokenK::GreaterEqual => BinaryOp::GreaterEqual,
+                TokenK::Less => BinaryOp::Less,
+                TokenK::LessEqual => BinaryOp::LessEqual,
+                _ => unreachable!(),
+            };
+
+            let right = self.term()?;
+
+            expr = Expr::Binary {
+                left: Box::new(expr),
+                op,
+                right: Box::new(right),
+            };
+        }
+
+        Ok(expr)
+    }
+
+    fn assignment(&mut self) -> Result<Option<Stmt>, String> {
+        if self.current + 1 >= self.tokens.len() {
+            return Ok(None);
+        }
+
+        match (
+            &self.tokens[self.current].kind,
+            &self.tokens[self.current + 1].kind,
+        ) {
+            (TokenK::Ident(name), TokenK::Equal) => {
+                let name = name.clone();
+
+                self.advance();
+                self.advance();
+
+                let value = self.expression()?;
+
+                self.consume(&TokenK::Semicolon, "expected ';' after assignment")?;
+
+                Ok(Some(Stmt::Assign { name, value }))
+            }
+            _ => Ok(None),
+        }
     }
 
     fn term(&mut self) -> Result<Expr, String> {
@@ -189,13 +280,23 @@ impl Parser {
             (a, b),
             (TokenK::Let, TokenK::Let)
                 | (TokenK::Print, TokenK::Print)
+                | (TokenK::If, TokenK::If)
+                | (TokenK::Else, TokenK::Else)
                 | (TokenK::Plus, TokenK::Plus)
                 | (TokenK::Minus, TokenK::Minus)
                 | (TokenK::Star, TokenK::Star)
                 | (TokenK::Slash, TokenK::Slash)
+                | (TokenK::EqualEqual, TokenK::EqualEqual)
+                | (TokenK::BangEqual, TokenK::BangEqual)
+                | (TokenK::Greater, TokenK::Greater)
+                | (TokenK::GreaterEqual, TokenK::GreaterEqual)
+                | (TokenK::Less, TokenK::Less)
+                | (TokenK::LessEqual, TokenK::LessEqual)
                 | (TokenK::Equal, TokenK::Equal)
                 | (TokenK::LParen, TokenK::LParen)
                 | (TokenK::RParen, TokenK::RParen)
+                | (TokenK::LBrace, TokenK::LBrace)
+                | (TokenK::RBrace, TokenK::RBrace)
                 | (TokenK::Semicolon, TokenK::Semicolon)
                 | (TokenK::Eof, TokenK::Eof)
                 | (TokenK::Number(_), TokenK::Number(_))

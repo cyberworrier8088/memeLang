@@ -34,6 +34,35 @@ impl Interpreter {
                 println!("{value}");
                 Ok(value)
             }
+            Stmt::Assign { name, value } => {
+                let value = self.eval(value)?;
+
+                if !self.env.contains_key(name) {
+                    return Err(format!("undefined variable `{}`", name));
+                }
+
+                self.env.insert(name.clone(), value);
+
+                Ok(value)
+            }
+            Stmt::If { condition, body, else_body } => {
+                let result = self.eval(condition)?;
+                if result != 0.0 {
+                    let mut last = 0.0;
+                    for stmt in body {
+                        last = self.execute(stmt)?;
+                    }
+                    Ok(last)
+                } else if let Some(else_body) = else_body {
+                    let mut last = 0.0;
+                    for stmt in else_body {
+                        last = self.execute(stmt)?;
+                    }
+                    Ok(last)
+                } else {
+                    Ok(0.0)
+                }
+            }
             Stmt::Expr(expr) => self.eval(expr),
         }
     }
@@ -61,6 +90,12 @@ impl Interpreter {
                     BinaryOp::Subtract => Ok(left - right),
                     BinaryOp::Multiply => Ok(left * right),
                     BinaryOp::Divide => Ok(left / right),
+                    BinaryOp::Equal => Ok(if left == right { 1.0 } else { 0.0 }),
+                    BinaryOp::NotEqual => Ok(if left != right { 1.0 } else { 0.0 }),
+                    BinaryOp::Greater => Ok(if left > right { 1.0 } else { 0.0 }),
+                    BinaryOp::GreaterEqual => Ok(if left >= right { 1.0 } else { 0.0 }),
+                    BinaryOp::Less => Ok(if left < right { 1.0 } else { 0.0 }),
+                    BinaryOp::LessEqual => Ok(if left <= right { 1.0 } else { 0.0 }),
                 }
             }
         }

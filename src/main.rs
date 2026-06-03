@@ -12,7 +12,7 @@ use lexer::Lexer;
 use parser::Parser;
 
 fn main() {
-    println!("Enter an expression:");
+    println!("Enter an expression (or 'exit' to quit):");
 
     let args: Vec<String> = env::args().collect();
 
@@ -23,17 +23,7 @@ fn main() {
     let source = fs::read_to_string(&args[1]).expect("failed to read file");
 
 
-    let source = source.trim();
-    if source.is_empty() {
-        eprintln!("no input provided");
-        return;
-    }
-
-    let source = if source.ends_with(';') {
-        source.to_string()
-    } else {
-        format!("{source};")
-    };
+    let source = source;
 
     let mut lexer = Lexer::new(&source);
     let tokens = lexer.tokenize().expect("lexing failed");

@@ -6,6 +6,18 @@ pub struct Program {
 #[derive(Debug, Clone)]
 pub enum Stmt {
     Let { name: String, value: Expr },
+
+    Assign {
+        name: String,
+        value: Expr,
+    },
+
+    If {
+        condition: Expr,
+        body: Vec<Stmt>,
+        else_body: Option<Vec<Stmt>>,
+    },
+
     Print(Expr),
     Expr(Expr),
 }
@@ -37,4 +49,13 @@ pub enum BinaryOp {
     Subtract,
     Multiply,
     Divide,
+
+    Equal,
+    NotEqual,
+
+    Greater,
+    GreaterEqual,
+
+    Less,
+    LessEqual,
 }

@@ -43,6 +43,8 @@ impl<'a> Lexer<'a> {
         let token = match c {
             '(' => Some(self.simple(TokenKind::LParen)),
             ')' => Some(self.simple(TokenKind::RParen)),
+            '{' => Some(self.simple(TokenKind::LBrace)),
+            '}' => Some(self.simple(TokenKind::RBrace)),
             '+' => Some(self.simple(TokenKind::Plus)),
             '-' => Some(self.simple(TokenKind::Minus)),
             '*' => Some(self.simple(TokenKind::Star)),
@@ -59,7 +61,41 @@ impl<'a> Lexer<'a> {
 
 
 
-            '=' => Some(self.simple(TokenKind::Equal)),
+            '=' => {
+                if self.peek() == '=' {
+                    self.advance();
+                    Some(self.simple(TokenKind::EqualEqual))
+                } else {
+                    Some(self.simple(TokenKind::Equal))
+                }
+            },
+
+            '!' => {
+                if self.peek() == '=' {
+                    self.advance();
+                    Some(self.simple(TokenKind::BangEqual))
+                } else {
+                    return Err("expected '=' after '!'".to_string());
+                }
+            }
+
+            '>' => {
+                if self.peek() == '=' {
+                    self.advance();
+                    Some(self.simple(TokenKind::GreaterEqual))
+                } else {
+                    Some(self.simple(TokenKind::Greater))
+                }
+            }
+
+            '<' => {
+                if self.peek() == '=' {
+                    self.advance();
+                    Some(self.simple(TokenKind::LessEqual))
+                } else {
+                    Some(self.simple(TokenKind::Less))
+                }
+            }
             ';' => Some(self.simple(TokenKind::Semicolon)),
             ' ' | '\r' | '\t' | '\n' => None,
             c if c.is_ascii_digit() => Some(self.number()),
@@ -113,6 +149,8 @@ impl<'a> Lexer<'a> {
         let kind = match lexeme.as_str() {
             "let" => TokenKind::Let,
             "print" => TokenKind::Print,
+            "if" => TokenKind::If,
+            "else" => TokenKind::Else,
             _ => TokenKind::Ident(lexeme.clone()),
         };
 
