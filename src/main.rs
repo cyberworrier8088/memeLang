@@ -4,7 +4,8 @@ mod lexer;
 mod parser;
 mod token;
 
-use std::io;
+use std::env;
+use std::fs;
 
 use interpreter::Interpreter;
 use lexer::Lexer;
@@ -13,10 +14,14 @@ use parser::Parser;
 fn main() {
     println!("Enter an expression:");
 
-    let mut source = String::new();
-    io::stdin()
-        .read_line(&mut source)
-        .expect("failed to read input");
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() < 2 {
+        eprintln!("Usage: memeLang <file>");
+        return;
+    }
+    let source = fs::read_to_string(&args[1]).expect("failed to read file");
+
 
     let source = source.trim();
     if source.is_empty() {
@@ -24,7 +29,11 @@ fn main() {
         return;
     }
 
-    let source = format!("{source};");
+    let source = if source.ends_with(';') {
+        source.to_string()
+    } else {
+        format!("{source};")
+    };
 
     let mut lexer = Lexer::new(&source);
     let tokens = lexer.tokenize().expect("lexing failed");

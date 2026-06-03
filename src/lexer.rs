@@ -46,7 +46,19 @@ impl<'a> Lexer<'a> {
             '+' => Some(self.simple(TokenKind::Plus)),
             '-' => Some(self.simple(TokenKind::Minus)),
             '*' => Some(self.simple(TokenKind::Star)),
-            '/' => Some(self.simple(TokenKind::Slash)),
+            '/' => {
+                if self.peek() == '/' {
+                    while self.peek() != '\n' && !self.is_at_end() {
+                        self.advance();
+                    }
+                    None
+                } else {
+                    Some(self.simple(TokenKind::Slash))
+                }
+            }
+
+
+
             '=' => Some(self.simple(TokenKind::Equal)),
             ';' => Some(self.simple(TokenKind::Semicolon)),
             ' ' | '\r' | '\t' | '\n' => None,
