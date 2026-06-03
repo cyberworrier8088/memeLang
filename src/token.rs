@@ -4,18 +4,17 @@ pub enum TokenKind {
     Let,
     Print,
     Ident(String),
-    Number(i32),
+    Number(f64),
     Plus,
     Minus,
     Star,
     Slash,
     Equal,
-    Lparen,
-    Rparen,
+    LParen,
+    RParen,
     Semicolon,
     Eof,
 }
-
 
 #[derive(Debug, Clone)]
 pub struct Token {
