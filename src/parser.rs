@@ -276,6 +276,8 @@ impl Parser {
             TokenK::Number(value) => Expr::Number(value),
             TokenK::String(value) => Expr::String(value),
             TokenK::Ident(name) => Expr::Variable(name),
+            TokenK::True => Expr::Bool(true),
+            TokenK::False => Expr::Bool(false),
             TokenK::LParen => {
                 let expr = self.expression()?;
                 self.consume(&TokenK::RParen, "expected `)` after expression")?;

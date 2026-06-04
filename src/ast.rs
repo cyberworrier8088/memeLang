@@ -43,6 +43,7 @@ pub enum Expr {
     Number(f64),
     String(String),
     Variable(String),
+    Bool(bool),
 
     Unary {
         op: UnaryOp,

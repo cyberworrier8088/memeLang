@@ -41,6 +41,10 @@ pub enum TokenKind {
     Fn,
     Return,
     Comma,
+
+
+    True,
+    False,
 }
 
 #[derive(Debug, Clone)]

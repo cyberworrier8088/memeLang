@@ -6,6 +6,7 @@ use std::fmt;
 pub enum Value {
     Number(f64),
     String(String),
+    Bool(bool),
     Function {
         params: Vec<String>,
         body: Vec<Stmt>,
@@ -16,7 +17,9 @@ impl Value {
     fn as_number(&self) -> Result<f64, String> {
         match self {
             Value::Number(value) => Ok(*value),
-            Value::String(_) | Value::Function { .. } => Err("expected number, found non-number".to_string()),
+            Value::String(_) | Value::Bool(_) | Value::Function { .. } => {
+                Err("expected number, found non-number".to_string())
+            }
         }
     }
 
@@ -24,6 +27,7 @@ impl Value {
         match self {
             Value::Number(value) => *value != 0.0,
             Value::String(value) => !value.is_empty(),
+            Value::Bool(value) => *value,
             Value::Function { .. } => true,
         }
     }
@@ -34,6 +38,7 @@ impl fmt::Display for Value {
         match self {
             Value::Number(value) => write!(f, "{value}"),
             Value::String(value) => write!(f, "{value}"),
+            Value::Bool(value) => write!(f, "{value}"),
             Value::Function { .. } => write!(f, "<function>"),
         }
     }
@@ -145,6 +150,7 @@ impl Interpreter {
         match expr {
             Expr::Number(value) => Ok(Value::Number(*value)),
             Expr::String(value) => Ok(Value::String(value.clone())),
+            Expr::Bool(value) => Ok(Value::Bool(*value)),
             Expr::Variable(name) => self
                 .env
                 .get(name)
