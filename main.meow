@@ -2,10 +2,28 @@ let a = 10;
 let b = 20;
 print a+b;
 
-let age = -5;
+print "helli";
 
-if age >= -10 {
+let x = 0;
+
+while x < 5 {
+    print x;
+    x = x + 1;
+}
+
+let age = 25;
+
+if age >= 18 {
     print 1;
 } else {
     print 0;
 }
+
+fn add(a, b) {
+    print "Hello, world";
+    return a + b;
+}
+
+let result = add(2, 3);
+
+print result;

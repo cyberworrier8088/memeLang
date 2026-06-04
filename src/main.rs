@@ -12,8 +12,6 @@ use lexer::Lexer;
 use parser::Parser;
 
 fn main() {
-    println!("Enter an expression (or 'exit' to quit):");
-
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 2 {
@@ -22,9 +20,6 @@ fn main() {
     }
     let source = fs::read_to_string(&args[1]).expect("failed to read file");
 
-
-    let source = source;
-
     let mut lexer = Lexer::new(&source);
     let tokens = lexer.tokenize().expect("lexing failed");
 
@@ -32,6 +27,5 @@ fn main() {
     let program = parser.parse_program().expect("parsing failed");
 
     let mut interpreter = Interpreter::new();
-    let result = interpreter.run(&program).expect("runtime error");
-    println!("result: {result:?}");
+    interpreter.run(&program).expect("runtime error");
 }

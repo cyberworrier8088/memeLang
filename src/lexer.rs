@@ -48,6 +48,8 @@ impl<'a> Lexer<'a> {
             '+' => Some(self.simple(TokenKind::Plus)),
             '-' => Some(self.simple(TokenKind::Minus)),
             '*' => Some(self.simple(TokenKind::Star)),
+            ',' => Some(self.simple(TokenKind::Comma)),
+            '"' => Some(self.string()?),
             '/' => {
                 if self.peek() == '/' {
                     while self.peek() != '\n' && !self.is_at_end() {
@@ -59,8 +61,6 @@ impl<'a> Lexer<'a> {
                 }
             }
 
-
-
             '=' => {
                 if self.peek() == '=' {
                     self.advance();
@@ -68,7 +68,7 @@ impl<'a> Lexer<'a> {
                 } else {
                     Some(self.simple(TokenKind::Equal))
                 }
-            },
+            }
 
             '!' => {
                 if self.peek() == '=' {
@@ -140,6 +140,27 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    fn string(&mut self) -> Result<Token, String> {
+        while self.peek() != '"' && !self.is_at_end() {
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            return Err("unterminated string".into());
+        }
+        self.advance();
+
+        let value: String = self.chars[self.start + 1..self.current - 1]
+            .iter()
+            .collect();
+
+        Ok(Token {
+            kind: TokenKind::String(value.clone()),
+            lexeme: value,
+            pos: self.start,
+        })
+    }
+
     fn identifier(&mut self) -> Token {
         while is_ident_continue(self.peek()) {
             self.advance();
@@ -151,6 +172,10 @@ impl<'a> Lexer<'a> {
             "print" => TokenKind::Print,
             "if" => TokenKind::If,
             "else" => TokenKind::Else,
+            "while" => TokenKind::While,
+
+            "fn" => TokenKind::Fn, 
+            "return" => TokenKind::Return,
             _ => TokenKind::Ident(lexeme.clone()),
         };
 

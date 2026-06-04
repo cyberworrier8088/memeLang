@@ -3,9 +3,12 @@ pub struct Program {
     pub statements: Vec<Stmt>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Stmt {
-    Let { name: String, value: Expr },
+    Let {
+        name: String,
+        value: Expr,
+    },
 
     Assign {
         name: String,
@@ -18,14 +21,29 @@ pub enum Stmt {
         else_body: Option<Vec<Stmt>>,
     },
 
+    While {
+        condition: Expr,
+        body: Vec<Stmt>,
+    },
+
+    Function {
+        name: String,
+        params: Vec<String>,
+        body: Vec<Stmt>,
+    },
+
+
+    Return(Expr),
     Print(Expr),
     Expr(Expr),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
     Number(f64),
+    String(String),
     Variable(String),
+
     Unary {
         op: UnaryOp,
         expr: Box<Expr>,
@@ -35,15 +53,19 @@ pub enum Expr {
         left: Box<Expr>,
         right: Box<Expr>,
     },
+    Call {
+        callee: String,
+        args: Vec<Expr>,
+    }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum UnaryOp {
     Plus,
     Negate,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum BinaryOp {
     Add,
     Subtract,

@@ -25,6 +25,14 @@ impl Parser {
             return self.let_statement();
         }
 
+        if self.matches(&TokenK::Fn) {
+            return self.function_statement();
+        }
+
+        if self.matches(&TokenK::Return) {
+            return self.return_statement();
+        }
+
         if self.matches(&TokenK::Print) {
             let value = self.expression()?;
             self.consume(&TokenK::Semicolon, "Expected ';' after print statement")?;
@@ -33,6 +41,10 @@ impl Parser {
 
         if self.matches(&TokenK::If) {
             return self.if_statement();
+        }
+
+        if self.matches(&TokenK::While) {
+            return self.while_statement();
         }
 
         if let Some(assign) = self.assignment()? {
@@ -81,7 +93,61 @@ impl Parser {
             None
         };
 
-        Ok(Stmt::If { condition, body, else_body })
+        Ok(Stmt::If {
+            condition,
+            body,
+            else_body,
+        })
+    }
+
+    fn while_statement(&mut self) -> Result<Stmt, String> {
+        let condition = self.expression()?;
+        self.consume(&TokenK::LBrace, "expected '{' after condition")?;
+
+        let mut body = Vec::new();
+        while !self.check(&TokenK::RBrace) {
+            body.push(self.statement()?);
+        }
+        self.consume(&TokenK::RBrace, "expected '}' after while statement")?;
+
+        Ok(Stmt::While { condition, body })
+    }
+
+    fn function_statement(&mut self) -> Result<Stmt, String> {
+        let name = match self.advance().kind.clone() {
+            TokenK::Ident(name) => name,
+            _ => return Err(self.error("expected function name after `fn`")),
+        };
+
+        self.consume(&TokenK::LParen, "expected '(' after function name")?;
+        let mut params = Vec::new();
+        if !self.check(&TokenK::RParen) {
+            loop {
+                match self.advance().kind.clone() {
+                    TokenK::Ident(name) => params.push(name),
+                    _ => return Err(self.error("expected parameter name")),
+                }
+                if !self.matches(&TokenK::Comma) {
+                    break;
+                }
+            }
+        }
+        self.consume(&TokenK::RParen, "expected ')' after function parameters")?;
+
+        self.consume(&TokenK::LBrace, "expected '{' before function body")?;
+        let mut body = Vec::new();
+        while !self.check(&TokenK::RBrace) {
+            body.push(self.statement()?);
+        }
+        self.consume(&TokenK::RBrace, "expected '}' after function body")?;
+
+        Ok(Stmt::Function { name, params, body })
+    }
+
+    fn return_statement(&mut self) -> Result<Stmt, String> {
+        let value = self.expression()?;
+        self.consume(&TokenK::Semicolon, "expected ';' after return statement")?;
+        Ok(Stmt::Return(value))
     }
 
     fn expression(&mut self) -> Result<Expr, String> {
@@ -125,23 +191,25 @@ impl Parser {
             return Ok(None);
         }
 
-        match (
-            &self.tokens[self.current].kind,
-            &self.tokens[self.current + 1].kind,
-        ) {
-            (TokenK::Ident(name), TokenK::Equal) => {
-                let name = name.clone();
+        // Check if current is Ident and next is Equal
+        let is_ident = matches!(&self.tokens[self.current].kind, TokenK::Ident(_));
+        let next_is_equal = matches!(&self.tokens[self.current + 1].kind, TokenK::Equal);
 
-                self.advance();
-                self.advance();
+        if is_ident && next_is_equal {
+            let name = match self.advance().kind.clone() {
+                TokenK::Ident(n) => n,
+                _ => unreachable!(),
+            };
 
-                let value = self.expression()?;
+            self.advance(); // consume =
 
-                self.consume(&TokenK::Semicolon, "expected ';' after assignment")?;
+            let value = self.expression()?;
 
-                Ok(Some(Stmt::Assign { name, value }))
-            }
-            _ => Ok(None),
+            self.consume(&TokenK::Semicolon, "expected ';' after assignment")?;
+
+            Ok(Some(Stmt::Assign { name, value }))
+        } else {
+            Ok(None)
         }
     }
 
@@ -204,15 +272,40 @@ impl Parser {
     }
 
     fn primary(&mut self) -> Result<Expr, String> {
-        match self.advance().kind.clone() {
-            TokenK::Number(value) => Ok(Expr::Number(value)),
-            TokenK::Ident(name) => Ok(Expr::Variable(name)),
+        let mut expr = match self.advance().kind.clone() {
+            TokenK::Number(value) => Expr::Number(value),
+            TokenK::String(value) => Expr::String(value),
+            TokenK::Ident(name) => Expr::Variable(name),
             TokenK::LParen => {
                 let expr = self.expression()?;
                 self.consume(&TokenK::RParen, "expected `)` after expression")?;
-                Ok(expr)
+                expr
             }
-            _ => Err(self.error("expected expression")),
+            _ => return Err(self.error("expected expression")),
+        };
+
+        while self.matches(&TokenK::LParen) {
+            expr = self.finish_call(expr)?;
+        }
+
+        Ok(expr)
+    }
+
+    fn finish_call(&mut self, callee: Expr) -> Result<Expr, String> {
+        let mut args = Vec::new();
+        if !self.check(&TokenK::RParen) {
+            loop {
+                args.push(self.expression()?);
+                if !self.matches(&TokenK::Comma) {
+                    break;
+                }
+            }
+        }
+        self.consume(&TokenK::RParen, "expected ')' after arguments")?;
+
+        match callee {
+            Expr::Variable(name) => Ok(Expr::Call { callee: name, args }),
+            _ => Err(self.error("expected function name before call")),
         }
     }
 
@@ -282,6 +375,7 @@ impl Parser {
                 | (TokenK::Print, TokenK::Print)
                 | (TokenK::If, TokenK::If)
                 | (TokenK::Else, TokenK::Else)
+                | (TokenK::While, TokenK::While)
                 | (TokenK::Plus, TokenK::Plus)
                 | (TokenK::Minus, TokenK::Minus)
                 | (TokenK::Star, TokenK::Star)
@@ -300,7 +394,11 @@ impl Parser {
                 | (TokenK::Semicolon, TokenK::Semicolon)
                 | (TokenK::Eof, TokenK::Eof)
                 | (TokenK::Number(_), TokenK::Number(_))
+                | (TokenK::String(_), TokenK::String(_))
                 | (TokenK::Ident(_), TokenK::Ident(_))
+                | (TokenK::Fn, TokenK::Fn)
+                | (TokenK::Return, TokenK::Return)
+                | (TokenK::Comma, TokenK::Comma)
         )
     }
 }

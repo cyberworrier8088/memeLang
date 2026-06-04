@@ -1,0 +1,31 @@
+## Day-0
+
+Today I researched the basics of interpreters.
+
+I had only a little knowledge about compilers and interpreters.
+
+I asked ChatGPT to compare interpreters and compilers, and I understood that building an interpreter first is a good approach.
+
+That is why I started researching interpreter design. At first I wanted to make a normal language, then I decided to make a meme-style language because that would be more fun.
+
+This video helped me a lot: https://youtu.be/CnnqbEAdI94?si=F6JYrFq5Zr11HQ9l
+
+It took a lot of time, but I learned many new things.
+
+
+## Day-1
+
+Today I started coding. I made a first version, but it is still very basic and needs improvement.
+
+I switched to using enums and `impl` blocks in Rust, and that helped make the code cleaner.
+
+Yesterday’s research was helpful, but I still want to learn more.
+
+I implemented:
+1. `let` statements
+2. `print` statements
+3. `if` / `else`
+
+There are still some bugs and many areas to improve.
+
+I also want to add expression parsing, variable assignment, and better error handling next.

@@ -6,6 +6,7 @@ pub enum TokenKind {
 
     Ident(String),
     Number(f64),
+    String(String),
 
     Plus,
     Minus,
@@ -32,7 +33,14 @@ pub enum TokenKind {
     If,
     Else,
 
+    While,
+
     Eof,
+
+
+    Fn,
+    Return,
+    Comma,
 }
 
 #[derive(Debug, Clone)]
