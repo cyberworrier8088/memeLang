@@ -47,6 +47,10 @@ impl Parser {
             return self.while_statement();
         }
 
+        if self.matches(&TokenK::For) {
+            return self.for_statement();
+        }
+
         if let Some(assign) = self.assignment()? {
             return Ok(assign);
         }
@@ -111,6 +115,31 @@ impl Parser {
         self.consume(&TokenK::RBrace, "expected '}' after while statement")?;
 
         Ok(Stmt::While { condition, body })
+    }
+
+    fn for_statement(&mut self) -> Result<Stmt, String> {
+        // syntax: for <ident> in <expression> { <body> }
+        let name = match self.advance().kind.clone() {
+            TokenK::Ident(name) => name,
+            _ => return Err(self.error("expected identifier after `for`")),
+        };
+
+        self.consume(&TokenK::In, "expected 'in' after for variable")?;
+
+        let iterable = self.expression()?;
+
+        self.consume(&TokenK::LBrace, "expected '{' after for iterable")?;
+        let mut body = Vec::new();
+        while !self.check(&TokenK::RBrace) {
+            body.push(self.statement()?);
+        }
+        self.consume(&TokenK::RBrace, "expected '}' after for body")?;
+
+        Ok(Stmt::For {
+            variable: name,
+            iterable,
+            body,
+        })
     }
 
     fn function_statement(&mut self) -> Result<Stmt, String> {
@@ -283,14 +312,35 @@ impl Parser {
                 self.consume(&TokenK::RParen, "expected `)` after expression")?;
                 expr
             }
+            TokenK::LBracket => self.list_literal()?,
             _ => return Err(self.error("expected expression")),
         };
 
-        while self.matches(&TokenK::LParen) {
-            expr = self.finish_call(expr)?;
+        loop {
+            if self.matches(&TokenK::LParen) {
+                expr = self.finish_call(expr)?;
+            } else if self.matches(&TokenK::LBracket) {
+                expr = self.finish_index(expr)?;
+            } else {
+                break;
+            }
         }
 
         Ok(expr)
+    }
+
+    fn list_literal(&mut self) -> Result<Expr, String> {
+        let mut elements = Vec::new();
+        if !self.check(&TokenK::RBracket) {
+            loop {
+                elements.push(self.expression()?);
+                if !self.matches(&TokenK::Comma) {
+                    break;
+                }
+            }
+        }
+        self.consume(&TokenK::RBracket, "expected ']' after list literal")?;
+        Ok(Expr::List(elements))
     }
 
     fn finish_call(&mut self, callee: Expr) -> Result<Expr, String> {
@@ -304,11 +354,21 @@ impl Parser {
             }
         }
         self.consume(&TokenK::RParen, "expected ')' after arguments")?;
-
         match callee {
             Expr::Variable(name) => Ok(Expr::Call { callee: name, args }),
             _ => Err(self.error("expected function name before call")),
         }
+    }
+
+    fn finish_index(&mut self, object: Expr) -> Result<Expr, String> {
+        let index = self.expression()?;
+
+        self.consume(&TokenK::RBracket, "expected ']' after index")?;
+
+        Ok(Expr::Index {
+            object: Box::new(object),
+            index: Box::new(index),
+        })
     }
 
     fn consume(&mut self, kind: &TokenK, message: &str) -> Result<(), String> {
@@ -367,7 +427,8 @@ impl Parser {
     }
 
     fn error(&self, message: &str) -> String {
-        format!("{message} at token {:?}", self.peek())
+        let token = self.peek();
+        format!("{message} at `{}` (position {})", token.lexeme, token.pos)
     }
 
     fn token_kind_matches(a: &TokenK, b: &TokenK) -> bool {
@@ -378,6 +439,10 @@ impl Parser {
                 | (TokenK::If, TokenK::If)
                 | (TokenK::Else, TokenK::Else)
                 | (TokenK::While, TokenK::While)
+                | (TokenK::For, TokenK::For)
+                | (TokenK::In, TokenK::In)
+                | (TokenK::True, TokenK::True)
+                | (TokenK::False, TokenK::False)
                 | (TokenK::Plus, TokenK::Plus)
                 | (TokenK::Minus, TokenK::Minus)
                 | (TokenK::Star, TokenK::Star)
@@ -393,6 +458,8 @@ impl Parser {
                 | (TokenK::RParen, TokenK::RParen)
                 | (TokenK::LBrace, TokenK::LBrace)
                 | (TokenK::RBrace, TokenK::RBrace)
+                | (TokenK::LBracket, TokenK::LBracket)
+                | (TokenK::RBracket, TokenK::RBracket)
                 | (TokenK::Semicolon, TokenK::Semicolon)
                 | (TokenK::Eof, TokenK::Eof)
                 | (TokenK::Number(_), TokenK::Number(_))

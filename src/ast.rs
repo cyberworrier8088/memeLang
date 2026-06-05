@@ -32,6 +32,11 @@ pub enum Stmt {
         body: Vec<Stmt>,
     },
 
+    For {
+        variable: String,
+        iterable: Expr,
+        body: Vec<Stmt>,
+    },
 
     Return(Expr),
     Print(Expr),
@@ -44,6 +49,7 @@ pub enum Expr {
     String(String),
     Variable(String),
     Bool(bool),
+    List(Vec<Expr>),
 
     Unary {
         op: UnaryOp,
@@ -57,7 +63,11 @@ pub enum Expr {
     Call {
         callee: String,
         args: Vec<Expr>,
-    }
+    },
+    Index {
+        object: Box<Expr>,
+        index: Box<Expr>,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

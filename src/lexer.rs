@@ -97,6 +97,8 @@ impl<'a> Lexer<'a> {
                 }
             }
             ';' => Some(self.simple(TokenKind::Semicolon)),
+            '[' => Some(self.simple(TokenKind::LBracket)),
+            ']' => Some(self.simple(TokenKind::RBracket)),
             ' ' | '\r' | '\t' | '\n' => None,
             c if c.is_ascii_digit() => Some(self.number()),
             c if is_ident_start(c) => Some(self.identifier()),
@@ -173,11 +175,13 @@ impl<'a> Lexer<'a> {
             "if" => TokenKind::If,
             "else" => TokenKind::Else,
             "while" => TokenKind::While,
-            
+            "for" => TokenKind::For,
+            "in" => TokenKind::In,
+
             "true" => TokenKind::True,
             "false" => TokenKind::False,
 
-            "fn" => TokenKind::Fn, 
+            "fn" => TokenKind::Fn,
             "return" => TokenKind::Return,
             _ => TokenKind::Ident(lexeme.clone()),
         };

@@ -7,6 +7,7 @@ pub enum Value {
     Number(f64),
     String(String),
     Bool(bool),
+    List(Vec<Value>),
     Function {
         params: Vec<String>,
         body: Vec<Stmt>,
@@ -17,9 +18,7 @@ impl Value {
     fn as_number(&self) -> Result<f64, String> {
         match self {
             Value::Number(value) => Ok(*value),
-            Value::String(_) | Value::Bool(_) | Value::Function { .. } => {
-                Err("expected number, found non-number".to_string())
-            }
+            _ => Err("expected number, found non-number".to_string()),
         }
     }
 
@@ -28,6 +27,7 @@ impl Value {
             Value::Number(value) => *value != 0.0,
             Value::String(value) => !value.is_empty(),
             Value::Bool(value) => *value,
+            Value::List(values) => !values.is_empty(),
             Value::Function { .. } => true,
         }
     }
@@ -39,6 +39,17 @@ impl fmt::Display for Value {
             Value::Number(value) => write!(f, "{value}"),
             Value::String(value) => write!(f, "{value}"),
             Value::Bool(value) => write!(f, "{value}"),
+            Value::List(values) => {
+                write!(f, "[")?;
+                let mut iter = values.iter();
+                if let Some(first) = iter.next() {
+                    write!(f, "{first}")?;
+                    for value in iter {
+                        write!(f, ", {value}")?;
+                    }
+                }
+                write!(f, "]")
+            }
             Value::Function { .. } => write!(f, "<function>"),
         }
     }
@@ -102,13 +113,10 @@ impl Interpreter {
             }
             Stmt::Assign { name, value } => {
                 let value = self.eval(value)?;
-
                 if !self.env.contains_key(name) {
                     return Err(format!("undefined variable `{}`", name));
                 }
-
                 self.env.insert(name.clone(), value.clone());
-
                 Ok(value)
             }
             Stmt::If {
@@ -130,7 +138,6 @@ impl Interpreter {
                 }
                 Ok(Value::Number(0.0))
             }
-
             Stmt::While { condition, body } => {
                 let mut last = Value::Number(0.0);
                 while self.eval(condition)?.is_truthy() {
@@ -141,7 +148,27 @@ impl Interpreter {
                 }
                 Ok(last)
             }
-
+            Stmt::For {
+                variable,
+                iterable,
+                body,
+            } => {
+                let iterable = self.eval(iterable)?;
+                match iterable {
+                    Value::List(values) => {
+                        let mut last = Value::Number(0.0);
+                        for v in values {
+                            self.env.insert(variable.clone(), v.clone());
+                            match self.execute_block(body)? {
+                                ExecResult::Return(value) => return Ok(value),
+                                ExecResult::Value(value) => last = value,
+                            }
+                        }
+                        Ok(last)
+                    }
+                    _ => Err("can only iterate lists".to_string()),
+                }
+            }
             Stmt::Expr(expr) => self.eval(expr),
         }
     }
@@ -151,6 +178,27 @@ impl Interpreter {
             Expr::Number(value) => Ok(Value::Number(*value)),
             Expr::String(value) => Ok(Value::String(value.clone())),
             Expr::Bool(value) => Ok(Value::Bool(*value)),
+            Expr::List(elements) => {
+                let values = elements
+                    .iter()
+                    .map(|e| self.eval(e))
+                    .collect::<Result<Vec<_>, _>>()?;
+                Ok(Value::List(values))
+            }
+            Expr::Index { object, index } => {
+                let object = self.eval(object)?;
+                let index = self.eval(index)?;
+                let index = index.as_number()? as usize;
+                match object {
+                    Value::List(values) => {
+                        if index >= values.len() {
+                            return Err(format!("index {} out of bounds", index));
+                        }
+                        Ok(values[index].clone())
+                    }
+                    _ => Err("can only index lists".to_string()),
+                }
+            }
             Expr::Variable(name) => self
                 .env
                 .get(name)
@@ -167,7 +215,14 @@ impl Interpreter {
                 let left = self.eval(left)?;
                 let right = self.eval(right)?;
                 match op {
-                    BinaryOp::Add => Ok(Value::Number(left.as_number()? + right.as_number()?)),
+                    BinaryOp::Add => match (left, right) {
+                        (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l + r)),
+                        (Value::List(mut l), Value::List(r)) => {
+                            l.extend(r);
+                            Ok(Value::List(l))
+                        }
+                        _ => Err("expected numbers or lists for addition".to_string()),
+                    },
                     BinaryOp::Subtract => Ok(Value::Number(left.as_number()? - right.as_number()?)),
                     BinaryOp::Multiply => Ok(Value::Number(left.as_number()? * right.as_number()?)),
                     BinaryOp::Divide => Ok(Value::Number(left.as_number()? / right.as_number()?)),
@@ -209,7 +264,6 @@ impl Interpreter {
                     .get(callee)
                     .cloned()
                     .ok_or_else(|| format!("undefined function `{}`", callee))?;
-
                 let (params, body) = match value {
                     Value::Function { params, body } => (params, body),
                     _ => return Err(format!("`{}` is not a function", callee)),

@@ -31,3 +31,12 @@ print result;
 let admin = false;
 
 print admin;
+
+let nums = [1, 2, 3] + [1, 2, 2];
+print nums[0];
+
+
+
+for item in nums {
+    print item;
+}

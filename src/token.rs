@@ -29,19 +29,22 @@ pub enum TokenKind {
     LBrace,
     RBrace,
     Semicolon,
+    LBracket,
+    RBracket,
 
     If,
     Else,
 
     While,
 
-    Eof,
+    For,
+    In,
 
+    Eof,
 
     Fn,
     Return,
     Comma,
-
 
     True,
     False,
