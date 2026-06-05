@@ -28,4 +28,3 @@ I implemented:
 
 There are still some bugs and many areas to improve.
 
-I also want to add expression parsing, variable assignment, and better error handling next.
