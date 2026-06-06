@@ -4,7 +4,7 @@
 
 The most serious non-serious programming language.
 
-<img src="website\assets\Trollface.svg" width="250">
+<img src="website/assets/Trollface.svg" width="250">
 
 MemeLang is a fun programing language build from scratch in rust.
 
