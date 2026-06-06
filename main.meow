@@ -1,42 +1,67 @@
-let a = 10;
-let b = 20;
-print a+b;
 
-print "helli";
+:) hello
+
+let a = 10;
+let b = 20
+print a+b
+
+print "helli"
 
 let x = 0;
 
 while x < 5 {
-    print x;
-    x = x + 1;
+    print x
+    x = x + 1
 }
 
-let age = 25;
+let age = 25
 
 if age >= 18 {
-    print 1;
+    print 1
 } else {
-    print 0;
+    print 0
 }
 
 fn add(a, b) {
-    print "Hello, world";
-    return a + b;
+    print "Hello, world"
+    return a + b
 }
 
-let result = add(2, 3);
+let result = add(2, 3)
 
-print result;
+print result
 
-let admin = false;
+let admin = false
 
-print admin;
+print admin
 
-let nums = [1, 2, 3] + [1, 2, 2];
-print nums[0];
+let nums = [1, 2, 3] + [1, 2, 2]
+print nums[0]
 
 
 
 for item in nums {
-    print item;
+    print item
+}
+
+:)
+
+:) absolute cinema
+
+cow_say "meme_demo"
+
+skill add(a, b) {
+    yeet a + b
+}
+
+cook nums = [10, 20, 30]
+
+touchgrass item in nums {
+    yap item
+}
+
+sus 1 == 1 {
+    scream "fr fr"
+} nah {
+    scream "cap"
 }

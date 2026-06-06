@@ -35,7 +35,7 @@ impl Parser {
 
         if self.matches(&TokenK::Print) {
             let value = self.expression()?;
-            self.consume(&TokenK::Semicolon, "Expected ';' after print statement")?;
+            self.optional_semicolon();
             return Ok(Stmt::Print(value));
         }
 
@@ -70,7 +70,7 @@ impl Parser {
 
         let value = self.expression()?;
 
-        self.consume(&TokenK::Semicolon, "expected `;` after let statement")?;
+        self.optional_semicolon();
 
         Ok(Stmt::Let { name, value })
     }
@@ -135,11 +135,7 @@ impl Parser {
         }
         self.consume(&TokenK::RBrace, "expected '}' after for body")?;
 
-        Ok(Stmt::For {
-            variable: name,
-            iterable,
-            body,
-        })
+        Ok(Stmt::For { variable: name, iterable, body })
     }
 
     fn function_statement(&mut self) -> Result<Stmt, String> {
@@ -175,7 +171,7 @@ impl Parser {
 
     fn return_statement(&mut self) -> Result<Stmt, String> {
         let value = self.expression()?;
-        self.consume(&TokenK::Semicolon, "expected ';' after return statement")?;
+        self.optional_semicolon();
         Ok(Stmt::Return(value))
     }
 
@@ -234,7 +230,7 @@ impl Parser {
 
             let value = self.expression()?;
 
-            self.consume(&TokenK::Semicolon, "expected ';' after assignment")?;
+            self.optional_semicolon();
 
             Ok(Some(Stmt::Assign { name, value }))
         } else {
@@ -371,6 +367,10 @@ impl Parser {
         })
     }
 
+    fn optional_semicolon(&mut self) {
+        let _ = self.matches(&TokenK::Semicolon);
+    }
+
     fn consume(&mut self, kind: &TokenK, message: &str) -> Result<(), String> {
         if self.check(kind) {
             self.advance();
@@ -427,8 +427,7 @@ impl Parser {
     }
 
     fn error(&self, message: &str) -> String {
-        let token = self.peek();
-        format!("{message} at `{}` (position {})", token.lexeme, token.pos)
+        format!("{message} at token {:?}", self.peek())
     }
 
     fn token_kind_matches(a: &TokenK, b: &TokenK) -> bool {
@@ -439,10 +438,6 @@ impl Parser {
                 | (TokenK::If, TokenK::If)
                 | (TokenK::Else, TokenK::Else)
                 | (TokenK::While, TokenK::While)
-                | (TokenK::For, TokenK::For)
-                | (TokenK::In, TokenK::In)
-                | (TokenK::True, TokenK::True)
-                | (TokenK::False, TokenK::False)
                 | (TokenK::Plus, TokenK::Plus)
                 | (TokenK::Minus, TokenK::Minus)
                 | (TokenK::Star, TokenK::Star)
@@ -468,6 +463,8 @@ impl Parser {
                 | (TokenK::Fn, TokenK::Fn)
                 | (TokenK::Return, TokenK::Return)
                 | (TokenK::Comma, TokenK::Comma)
+                | (TokenK::For, TokenK::For)
+                | (TokenK::In, TokenK::In)
         )
     }
 }

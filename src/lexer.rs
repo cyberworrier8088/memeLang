@@ -96,6 +96,20 @@ impl<'a> Lexer<'a> {
                     Some(self.simple(TokenKind::Less))
                 }
             }
+
+            ':' => {
+                if self.peek() == ')' {
+                    self.advance();
+
+                    while self.peek() != '\n' && !self.is_at_end() {
+                        self.advance();
+                    }
+                    None
+                } else {
+                    return Err("Expected ')' after ':'".into());
+                }
+                
+            }
             ';' => Some(self.simple(TokenKind::Semicolon)),
             '[' => Some(self.simple(TokenKind::LBracket)),
             ']' => Some(self.simple(TokenKind::RBracket)),
@@ -170,19 +184,19 @@ impl<'a> Lexer<'a> {
 
         let lexeme = self.current_lexeme();
         let kind = match lexeme.as_str() {
-            "let" => TokenKind::Let,
-            "print" => TokenKind::Print,
-            "if" => TokenKind::If,
-            "else" => TokenKind::Else,
-            "while" => TokenKind::While,
-            "for" => TokenKind::For,
-            "in" => TokenKind::In,
+            "let" | "cook" | "spawn" | "summon" | "drop" | "birth" => TokenKind::Let,
+            "print" | "yell" | "cow_say" | "moo" | "yap" | "scream" | "announce" | "leak" | "broadcast" | "meow" => TokenKind::Print,
+            "if" | "sus" | "what" | "vibecheck" | "checkin" => TokenKind::If,
+            "else" | "nah" | "no" | "cap" | "otherwise" => TokenKind::Else,
+            "while" | "grind" | "farm" | "loopmaxxing" => TokenKind::While,
+            "for" | "touchgrass" | "repeatbro" => TokenKind::For,
+            "in" | "inside" | "among" => TokenKind::In,
 
-            "true" => TokenKind::True,
-            "false" => TokenKind::False,
+            "true" | "real" | "fr" => TokenKind::True,
+            "false" | "fake" | "cap" => TokenKind::False,
 
-            "fn" => TokenKind::Fn,
-            "return" => TokenKind::Return,
+            "fn" | "function" | "skill" | "spell" | "move" | "technique" => TokenKind::Fn,
+            "return" | "yeet" | "sendit" | "eject" | "spitfacts" => TokenKind::Return,
             _ => TokenKind::Ident(lexeme.clone()),
         };
 
