@@ -21,6 +21,9 @@ impl<'a> Lexer<'a> {
         }
     }
 
+
+    // converts source code into a stream of tokens
+    // This is the first stage of the MemeLang compilation pipeline.
     pub fn tokenize(&mut self) -> Result<Vec<Token>, String> {
         let mut tokens = Vec::new();
 
@@ -240,3 +243,9 @@ fn is_ident_start(c: char) -> bool {
 fn is_ident_continue(c: char) -> bool {
     c.is_ascii_alphanumeric() || c == '_'
 }
+
+
+
+///------------------------------------------------
+/// END OF lexer.rs
+///------------------------------------------------

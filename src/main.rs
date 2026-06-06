@@ -1,6 +1,13 @@
 // src\main.rs
 
 
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------
+// this is a simple and funny programming lang
+// Warning: MemeLang is not designed for serious production use. It is designed for learning, experimentation, and absolute chaos.
+// enojoy my code
+// Thankyou
+//------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 mod ast;
 mod interpreter;
 mod lexer;
@@ -32,3 +39,9 @@ fn main() {
     let mut interpreter = Interpreter::new();
     interpreter.run(&program).expect("runtime error");
 }
+
+
+
+///------------------------------------------------
+/// END OF main.rs
+///------------------------------------------------
