@@ -75,7 +75,7 @@ cargo run -- program.meow
 Or use the compiled executable in Website download and :
 
 ```bash
-memeLang.exe program.meow
+.\memeLang.exe examples/main.meow
 ```
 
 ---
