@@ -1,6 +1,6 @@
 # MemeLang :)
 
-[![Website](https://memelangg.netlify.app/)]()
+[![Website](https://img.shields.io/badge/Website-MemeLang-00ff88)](https://memelangg.netlify.app/)
 
 The most serious non-serious programming language.
 
