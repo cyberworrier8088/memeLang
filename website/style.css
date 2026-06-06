@@ -93,3 +93,8 @@ footer {
     border: 1px solid #333;
     border-radius: 10px;
 }
+
+
+footer {
+    text-align: center;
+}
