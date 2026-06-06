@@ -1,0 +1,26 @@
+:) Star Pyramid(this not working)
+
+cook rows = 5
+
+cook i = 1
+
+grind i <= rows {
+
+    cook spaces = rows - i
+
+    grind spaces > 0 {
+        scream " "
+        spaces = spaces - 1
+    }
+
+    cook stars = (i * 2) - 1
+
+    grind stars > 0 {
+        scream "*"
+        stars = stars - 1
+    }
+
+    yap ""
+
+    i = i + 1
+}

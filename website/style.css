@@ -84,6 +84,8 @@ footer {
 
 
 #example_two {
+    width: 100%;
+    max-width: 800px;
     background: #ffffff;
     padding: 20px;
     border-radius: 10px;

@@ -1,0 +1,8 @@
+cook n = 10
+
+grind n > 0 {
+    yap n
+    n = n - 1
+}
+
+scream "BOOM!"

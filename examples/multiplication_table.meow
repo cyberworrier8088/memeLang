@@ -1,0 +1,6 @@
+cook i = 1
+
+grind i <= 10 {
+    yap 5 * i
+    i = i + 1
+}
