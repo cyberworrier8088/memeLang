@@ -79,7 +79,12 @@ memeLang.exe program.meow
 ```
 
 ---
+## Code
+## Screenshot
 
+![MemeLang Screenshot](website/assets/code.png)
+
+---
 
 ## Current Status
 
